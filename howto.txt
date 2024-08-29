@@ -1,0 +1,103 @@
+- Criar um novo repo público no GitHub chamado counter-app e fazer o clone no Codespace para o ambiente local
+
+### SIMPLE APP ###
+
+- Entrar no diretório do repo criado e criar um dir novo:
+
+	mkdir testing_counter
+
+- Rodar o pip install com os requirements:
+
+	python -m pip install -r requirements.txt
+
+- Criar arquivo de exemplo de dados:
+
+	mkdir data ; echo "0" > data/counter-file.txt ; chmod -R 777 data/
+
+- Com o Dockerfile disponivel, fazer o build da imagem com Docker:
+
+	docker build --tag "counter-app:0.1" .
+
+- Testar execução local do app:
+
+	python counter-app.py &
+
+	curl -X GET http://127.0.0.1:8080
+	curl -X POST http://127.0.0.1:8080
+
+- Fazer o commit dos arquivos
+
+- Criar nova branch no repo counter-app, denominada development
+
+### AWS ENVIRONMENT ###
+
+- Criar EC2 com Ubuntu (Host)
+
+	Criar uma conta AWS free (https://aws.amazon.com/free/)
+
+	Logar com o usuário e senha no console AWS (https://console.aws.amazon.com/console/home)
+
+	Confirmar se a região AWS inicial está como Norte da Virginia (us-east-1) e escolher o serviço EC2. Se precisar ir para o console EC2 da região diretamente (https://us-east-1.console.aws.amazon.com/ec2/home?region=us-east-1#Home:)
+
+	Clicar em Executar instância
+
+	Na tela Launch an instance, definir as seguintes configurações:
+
+		Nome: docker-host-cicd
+		Imagem: Ubuntu Server 64 bits (x86) - Qualificado para o nível gratuito
+		Tipo de instância: t2.micro
+		Par de chaves: criar um novo par de chaves com o nome "cicd". Salvar o arquivo .pem de chave privada em sua máquina para usar posteriormente para login na instância EC2
+		Rede: manter configuração default de VPC, atribuir IP publico automaticamente e Criar grupo de segurança. Selecionar as opções Permitir tráfego de SSH, HTTPS e HTTP da Internet
+		Disco: manter o padrão (8GB gp3)
+
+		Clicar no final da página em Executar instância
+
+	Na próxima tela, após a mensagem de êxito na execução, clicar em Conectar-se à instância
+
+	Selecione a opção que irá surgir na aba Conexão de instância do EC2 e clique no botão Conectar no fim da página, para carregar o console shell via web da Ec2
+
+	Após login no sistema, instalar o Docker:
+
+		apt-get update
+		sudo apt-get install -y ca-certificates curl gnupg
+		sudo install -m 0755 -d /etc/apt/keyrings
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+		echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(cat /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+		sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+		sudo docker run hello-world
+		mkdir ~/docker
+	
+	Criar estrutura de dados do script no sistema local da EC2, para fins de teste:
+
+		mkdir /tmp/data && echo 0 > /tmp/data/counter-file.txt && chmod -R 777 /tmp/data/
+		
+
+	Instalar AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+		
+		sudo apt-get install -y unzip
+		curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+		unzip awscliv2.zip && sudo ./aws/install
+		aws --version
+
+- Gerar Credenciais AWS
+	
+  Criar credenciais no IAM do usuário (https://us-east-1.console.aws.amazon.com/iam/home#/security_credentials)
+
+	Clicar no botão Criar chave de acesso
+
+	Copiar as chaves de acesso geradas
+
+	Na instância, usar o comando aws configure para configurar as chaves criadas (region us-east-1)
+
+	Gerar a conexão com o registry do ECR via docker login
+
+		aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <aws acct id>.dkr.ecr.us-east-1.amazonaws.com
+		aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 354918405503.dkr.ecr.us-east-1.amazonaws.com
+
+- Criar repositório ECR
+
+	Acessar no console AWS o serviço ECR na região us-east-1. Para acessar diretamente (https://us-east-1.console.aws.amazon.com/ecr/home?region=us-east-1)
+
+	Clicar em Criar um repositório. Em nome do repositório, criar como counter-app (mesmo nome do GitHub repo)
+
+
