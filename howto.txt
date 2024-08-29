@@ -100,4 +100,47 @@
 
 	Clicar em Criar um repositório. Em nome do repositório, criar como counter-app (mesmo nome do GitHub repo)
 
+- Criar secrets nos setting do repo para o ambiente de execução na AWS
+	AWS_PEM - secret no qual o valor deve ser a chave privada armazenada no arquivo .pem durante a criação da instância EC2 na AWS
+	AWS_HOST - secret com o IP publico criado na instância EC2
+	AWS_USER - secret com o usuário local do S.O. Ubuntu instalado na EC2 (geralmente no Ubuntu o usuário se chama ubuntu)
+
+### SNYK ###
+
+- Configurar o Snyk (link no market place: https://github.com/snyk/actions/tree/master/python)
+
+	Acessar https://snyk.io/pt-BR, clicar em Faça login e fazer login com a conta GitHub
+´
+	Na tela Authorize Snyk Login clicar no botão Authorize snyk para o Snyk acessar os repos do GitHub
+
+	Após ser redirecionado para o wizard de opções de scanner, selecionar no passo 1 (Choose integration method) a opção GitHub e clicar em Next Step. No passo 2 (Set access permissions) selecionar Private and public repositories e clicar em Next Step. No passo 3 (Configure automation settings & authenticate) manter todas as opções marcadas e clicar em Authenticate GitHub
+
+	De volta a tela de autorização, confirmar novamente no botão Authorize snyk
+
+	Após ser redirecionado para a tela de importação de flow para fazer scan do primeiro projeto, selecionar o repo do GitHub e clicar no botão Import and scan. O projeto vai estar pronto para scan
+
+	Ir para as configurações de usuário na conta (https://app.snyk.io/account) e no sub-menu Auth Token, clicar no campo da Key para exibição da mesma (na caixa de texto com o token oculto deverá estar aparecendo click to show) e copiar o valor para ser usado
+
+- Criar secrets nos setting do repo para integrar o Snyk
+
+	SNYK_TOKEN - secret com o token gerado na conta Snyk
+
+### CI ###
+
+- Ainda na branch development, verificar se o workflow .github/workflows/development-ci.yml está OK e realizar o commit para executar o Actions.
+
+### CD ###
+
+- Voltar para a branch main do repo. Realizar o PR (Pull Request) da branch development na branch main, para o merging do código.
+- Agora na branch main, verificar se o workflow .github/workflows/production-cd.yml está OK e o docker compose está criado, realizar o commit para executar o Actions
+
+### VALIDATING ###
+
+- Executar um teste simples via POSTMAN ou CURL:
+	curl -X GET http://<IP PUBLICO EC2>
+	curl -X POST http://<IP PUBLICO EC2>
+
+Caso queira validar um fluxo de autorização de deployment, ir nos settings do repo dentro da opção Environments, clicar no environment prod e habilitar a opção Required reviewers. Depois salvar em Save protection rules e executar novamente o workflow de deploy no Actions, agora será solicitado um review para aprovar ou recusar o deployment
+
+
 
